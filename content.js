@@ -6,6 +6,63 @@
  * This script is designed to be robust against changes in the website's own obfuscated class names.
  */
 
+// Extension settings with defaults
+let settings = {
+    hideNavigation: false,
+    hideAds: true,
+    useFlexLayout: true
+};
+
+// Load settings from storage
+function loadSettings() {
+    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout'], function(result) {
+        settings.hideNavigation = result.hideNavigation ?? false;
+        settings.hideAds = result.hideAds ?? true;
+        settings.useFlexLayout = result.useFlexLayout ?? true;
+        applySettings();
+    });
+}
+
+// Apply current settings to the page
+function applySettings() {
+    toggleNavigation(settings.hideNavigation);
+    toggleAdContainer(settings.hideAds);
+    toggleFlexLayout(settings.useFlexLayout);
+}
+
+// Toggle navigation visibility
+function toggleNavigation(hide) {
+    const navElement = document.querySelector('.main-navigation-wrapper');
+    if (navElement) {
+        navElement.style.display = hide ? 'none' : '';
+        console.log('🎯 FPL Extension: Navigation display:', hide ? 'none' : 'block');
+    }
+}
+
+// Toggle ad container visibility
+function toggleAdContainer(hide) {
+    const adContainer = document.querySelector('.fpl-ad-container');
+    if (adContainer) {
+        adContainer.style.display = hide ? 'none' : '';
+        console.log('🎯 FPL Extension: Ad Container display:', hide ? 'none' : 'block');
+    }
+}
+
+// Toggle flex layout
+function toggleFlexLayout(enable) {
+    const contentWrapper = document.querySelector('.fpl-content-wrapper');
+    if (contentWrapper) {
+        if (enable) {
+            contentWrapper.style.display = 'flex';
+            contentWrapper.style.flexDirection = 'row-reverse';
+        } else {
+            contentWrapper.style.display = '';
+            contentWrapper.style.flexDirection = '';
+        }
+        console.log('🎯 FPL Extension: Flex layout:', enable ? 'enabled' : 'disabled');
+    }
+}
+
 // Array of funny loading messages
 const funnyLoadingMessages = [
     "Please wait, de-uglifying the UI",
@@ -241,6 +298,9 @@ function detectNavigation() {
     } else {
         console.log('⏸️ FPL Extension: No navigation change detected');
     }
+    
+    // Reapply settings after navigation
+    setTimeout(applySettings, 500);
 }
 
 // Override pushState and replaceState to detect programmatic navigation
@@ -306,3 +366,30 @@ document.addEventListener('click', (event) => {
         console.log('ℹ️ FPL Extension: Not an FPL link or no href');
     }
 });
+
+// Listen for messages from the popup
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === 'updateSettings') {
+        console.log('🔧 FPL Extension: Updating settings', request.settings);
+        
+        // Update all available settings
+        if (typeof request.settings.hideNavigation !== 'undefined') {
+            settings.hideNavigation = request.settings.hideNavigation;
+        }
+        
+        if (typeof request.settings.hideAds !== 'undefined') {
+            settings.hideAds = request.settings.hideAds;
+        }
+        
+        if (typeof request.settings.useFlexLayout !== 'undefined') {
+            settings.useFlexLayout = request.settings.useFlexLayout;
+        }
+        
+        applySettings();
+        sendResponse({status: 'success'});
+    }
+    return true;
+});
+
+// Load settings on initialization
+loadSettings();

@@ -5,7 +5,8 @@
     "description": "Adds persistent classes to FPL layout sections for easier styling.",
     "permissions": [
       "activeTab",
-      "scripting"
+      "scripting",
+      "storage"
     ],
     "content_scripts": [
       {
@@ -19,5 +20,9 @@
         "resources": ["loader.css"],
         "matches": ["https://fantasy.premierleague.com/*"]
       }
-    ]
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": "images/icon.svg"
+    }
   }
