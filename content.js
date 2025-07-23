@@ -1,275 +1,72 @@
 // content.js
-(function() {
-    'use strict';
 
-    // --- 1. Loader Functions ---
+/**
+ * @description Identifies key layout sections of the FPL website and applies persistent,
+ * semantic CSS classes to them for easier custom styling.
+ * This script is designed to be robust against changes in the website's own obfuscated class names.
+ */
 
-    /**
-     * Injects the CSS for the loader into the document's head.
-     */
-    function injectLoaderCSS() {
-        const style = document.createElement('style');
-        style.id = 'fpl-styler-loader-styles';
-        style.textContent = `
-            #fpl-styler-loader {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background-color: #ffffff; z-index: 9999999; display: flex;
-                justify-content: center; align-items: center; flex-direction: column;
-                transition: opacity 0.4s ease-in-out;
+// Array of funny loading messages
+const funnyLoadingMessages = [
+    "Please wait, de-uglifying the UI",
+    "Applying fantasy tactics to the interface",
+    "Teaching the UI how to play a 4-3-3 formation",
+    "Transferring style points to your browser",
+    "Kicking the ugly styles off the pitch",
+    "Benching the bad CSS, promoting the good",
+    "VAR checking those layout issues",
+    "Scoring design goals while you wait",
+    "Subbing in some better UI elements",
+    "Clean sheet loading in progress",
+    "Giving the red card to layout jumping"
+];
+
+/**
+ * Creates and injects the loader overlay to prevent layout jumping
+ */
+function createLoaderOverlay() {
+    // Select a random message
+    const randomMessage = funnyLoadingMessages[Math.floor(Math.random() * funnyLoadingMessages.length)];
+    console.log('🎭 FPL Extension: Selected random message:', randomMessage);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'fpl-loader-overlay';
+    overlay.innerHTML = `
+        <div class="fpl-loader-spinner"></div>
+        <div class="fpl-loader-message">
+            ${randomMessage}<span class="fpl-loader-dots"></span>
+        </div>
+    `;
+    
+    // Inject loader CSS
+    const loaderCSS = document.createElement('link');
+    loaderCSS.rel = 'stylesheet';
+    loaderCSS.href = chrome.runtime.getURL('loader.css');
+    document.head.appendChild(loaderCSS);
+    
+    // Add overlay to page
+    document.documentElement.appendChild(overlay);
+    return overlay;
+}
+
+/**
+ * Removes the loader overlay with fade animation
+ */
+function removeLoaderOverlay(overlay) {
+    if (overlay) {
+        overlay.classList.add('fade-out');
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
             }
-            #fpl-styler-loader.hidden {
-                opacity: 0; pointer-events: none;
-            }
-            #fpl-styler-loader .spinner {
-                border: 8px solid #f3f3f3; border-top: 8px solid #550080;
-                border-radius: 50%; width: 60px; height: 60px;
-                animation: fpl-spin 1.5s linear infinite; margin-bottom: 20px;
-            }
-            #fpl-styler-loader .message {
-                font-size: 18px; color: #333; font-family: Arial, sans-serif;
-            }
-            @keyframes fpl-spin {
-                0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
+        }, 500); // Match the CSS transition duration
     }
+}
 
-    /**
-     * Creates and displays the loader on the page.
-     */
-    function showLoader() {
-        if (document.getElementById('fpl-styler-loader')) return; // Don't add if already present
-        const loader = document.createElement('div');
-        loader.id = 'fpl-styler-loader';
-        loader.innerHTML = `
-            <div class="spinner"></div>
-            <div class="message">Please wait, de-uglifying the UI.</div>
-        `;
-        document.body.appendChild(loader);
-    }
-
-    /**
-     * Hides and removes the loader from the page.
-     */
-    function hideLoader() {
-        const loader = document.getElementById('fpl-styler-loader');
-        if (loader) {
-            loader.classList.add('hidden');
-            setTimeout(() => {
-                loader.remove();
-                const styles = document.getElementById('fpl-styler-loader-styles');
-                if (styles) styles.remove();
-            }, 400);
-        }
-    }
-
-    // --- 2. Core Styling Logic ---
-
-    /**
-     * Applies persistent, semantic CSS classes to key layout sections of the FPL website.
-     * This is the main function for styling the page.
-     */
-    function applyPersistentClasses() {
-        let classesApplied = false;
-
-        // Main Navigation
-        const mainNavAnchor = document.querySelector('header nav a[href="/my-team"]');
-        if (mainNavAnchor) {
-            const navContainer = mainNavAnchor.closest('header');
-            if (navContainer && !navContainer.classList.contains('fpl-main-nav')) {
-                navContainer.classList.add('fpl-main-nav');
-                classesApplied = true;
-            }
-        }
-
-        // Main Content & Sidebar
-        const pitchElement = document.querySelector('div[data-sponsor="default"]');
-        if (pitchElement) {
-            const mainAreaParent = pitchElement.closest('main');
-            if (mainAreaParent && !mainAreaParent.classList.contains('fpl-content-wrapper')) {
-                mainAreaParent.classList.add('fpl-content-wrapper');
-                const children = Array.from(mainAreaParent.children).filter(el => el.tagName === 'DIV');
-                if (children.length >= 2) {
-                    children[0].classList.add('fpl-main-area');
-                    children[1].classList.add('fpl-side-bar');
-                    classesApplied = true;
-                }
-            }
-        }
-
-        // Ad Container
-        const mainNav = document.querySelector('.fpl-main-nav');
-        if (mainNav) {
-            const adContainer = mainNav.nextElementSibling;
-            if (adContainer && adContainer.tagName === 'DIV' && !adContainer.classList.contains('fpl-ad-container')) {
-                adContainer.classList.add('fpl-ad-container');
-                classesApplied = true;
-            }
-        }
-        return classesApplied;
-    }
-
-    // --- 3. Execution and Observers ---
-
-    // Show the loader immediately
-    injectLoaderCSS();
-    showLoader();
-
-    // Run the main function and hide the loader once done
-    // Use a timeout to give the page a moment to settle
-    setTimeout(() => {
-        applyPersistentClasses();
-        hideLoader();
-    }, 500);
-
-    // Observe DOM changes for SPA navigation
-    const observer = new MutationObserver((mutationsList, observer) => {
-        let debounceTimer;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            if (applyPersistentClasses()) {
-                // If new classes were applied, it might mean a page navigation
-                // We don't need to do anything extra, but this confirms it ran.
-            }
-        }, 300);
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
-})();
-
-(function() {
-    'use strict';
-
-    /**
-     * Injects the CSS for the loader into the document's head.
-     */
-    function injectLoaderCSS() {
-        const style = document.createElement('style');
-        style.id = 'fpl-styler-loader-styles';
-        style.textContent = `
-            #fpl-styler-loader {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: #ffffff;
-                z-index: 9999999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                flex-direction: column;
-                transition: opacity 0.3s ease-in-out;
-            }
-            #fpl-styler-loader.hidden {
-                opacity: 0;
-                pointer-events: none;
-            }
-            #fpl-styler-loader .spinner {
-                border: 8px solid #f3f3f3; /* Light grey */
-                border-top: 8px solid #550080; /* FPL Purple */
-                border-radius: 50%;
-                width: 60px;
-                height: 60px;
-                animation: fpl-spin 1.5s linear infinite;
-                margin-bottom: 20px;
-            }
-            #fpl-styler-loader .message {
-                font-size: 18px;
-                color: #333;
-                font-family: Arial, sans-serif;
-            }
-            @keyframes fpl-spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    /**
-     * Creates and displays the loader on the page.
-     */
-    function showLoader() {
-        const loader = document.createElement('div');
-        loader.id = 'fpl-styler-loader';
-        loader.innerHTML = `
-            <div class="spinner"></div>
-            <div class="message">Please wait, de-uglifying the UI.</div>
-        `;
-        document.body.appendChild(loader);
-    }
-
-    /**
-     * Hides and removes the loader from the page.
-     */
-    function hideLoader() {
-        const loader = document.getElementById('fpl-styler-loader');
-        if (loader) {
-            loader.classList.add('hidden');
-            // Remove the loader from the DOM after the transition ends
-            setTimeout(() => {
-                loader.remove();
-                const styles = document.getElementById('fpl-styler-loader-styles');
-                if (styles) styles.remove();
-            }, 300);
-        }
-    }
-
-    /**
-     * Applies semantic CSS classes to the FPL layout elements.
-     */
-    function applyClasses() {
-        // Main Navigation
-        const mainNav = document.querySelector('nav[role="navigation"]');
-        if (mainNav) mainNav.classList.add('fpl-main-nav');
-
-        // Ad container (often needs to be hidden)
-        const adContainer = document.querySelector('.AdSlot__AdSlotWrapper-sc-1qg1zyv-0');
-        if (adContainer) adContainer.classList.add('fpl-ad-container');
-
-        // Main content area
-        const mainContent = document.querySelector('main[role="main"]');
-        if (mainContent) {
-            mainContent.classList.add('fpl-content-wrapper');
-            const children = mainContent.children;
-            if (children.length >= 2) {
-                children[0].classList.add('fpl-main-area');
-                children[1].classList.add('fpl-side-bar');
-            }
-        }
-    }
-
-    // --- Main Execution ---
-
-    injectLoaderCSS();
-    showLoader();
-
-    // The FPL site is a single-page app, so we need to observe DOM changes.
-    const observer = new MutationObserver((mutationsList, observer) => {
-        for(const mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                applyClasses();
-            }
-        }
-    });
-
-    // Start observing the body for changes
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Apply classes on initial load and hide the loader
-    // Use a timeout to ensure the DOM is ready and styles are applied
-    setTimeout(() => {
-        applyClasses();
-        hideLoader();
-    }, 500); // Adjust timeout if needed
-
-})();
+// Create loader immediately when script loads
+let loaderOverlay = createLoaderOverlay();
+let currentUrl = window.location.href;
+let loaderStartTime = Date.now();
 
 /**
  * Helper function to find the closest common ancestor of two elements.
@@ -291,12 +88,14 @@ function findCommonAncestor(elem1, elem2) {
 }
 
 function applyPersistentClasses() {
+    let classesApplied = false;
     // --- 1. Identify Main Navigation (Top Bar) ---
     const mainNavAnchor = document.querySelector('header nav a[href="/my-team"]');
     if (mainNavAnchor) {
         const navContainer = mainNavAnchor.closest('header');
         if (navContainer && !navContainer.classList.contains('fpl-main-nav')) {
             navContainer.classList.add('fpl-main-nav');
+            classesApplied = true;
         }
     }
 
@@ -311,6 +110,7 @@ function applyPersistentClasses() {
             mainArea = mainAreaSection.parentElement; // This is the DIV container for the main area.
             if (mainArea && !mainArea.classList.contains('fpl-main-area')) {
                 mainArea.classList.add('fpl-main-area');
+                classesApplied = true;
             }
         }
     }
@@ -324,6 +124,7 @@ function applyPersistentClasses() {
         sideBar = searchInput.closest('section');
         if (sideBar && !sideBar.classList.contains('fpl-side-bar')) {
             sideBar.classList.add('fpl-side-bar');
+            classesApplied = true;
         }
     }
     
@@ -334,14 +135,18 @@ function applyPersistentClasses() {
         const adContainer = mainNav.nextElementSibling;
         if (adContainer && !adContainer.classList.contains('fpl-ad-container')) {
             adContainer.classList.add('fpl-ad-container');
+            classesApplied = true;
 
             // The content wrapper is the next element after the ad container
             const contentWrapper = adContainer.nextElementSibling;
             if (contentWrapper && !contentWrapper.classList.contains('fpl-content-wrapper')) {
                 contentWrapper.classList.add('fpl-content-wrapper');
+                classesApplied = true;
             }
         }
     }
+    
+    return classesApplied;
 }
 
 // --- 6. Handle Dynamic Content with MutationObserver ---
@@ -351,7 +156,10 @@ const observer = new MutationObserver((mutationsList, observer) => {
     debounceTimer = setTimeout(() => {
         // We only need to check for the wrapper, as the function will find all children from there.
         if (!document.querySelector('.fpl-content-wrapper')) {
-            applyPersistentClasses();
+            const classesApplied = applyPersistentClasses();
+            if (classesApplied && loaderOverlay && loaderOverlay.parentNode) {
+                removeLoaderWithDelay();
+            }
         }
     }, 500);
 });
@@ -361,4 +169,140 @@ observer.observe(document.body, {
     subtree: true
 });
 
-applyPersistentClasses();
+// Constants for loader timing
+const MINIMUM_LOADER_TIME = 1500; // Minimum 1.5 seconds display
+const STABILIZATION_DELAY = 800; // Additional delay after classes applied
+
+// Function to show loader for navigation
+function showLoaderForNavigation() {
+    console.log('🔄 FPL Extension: Showing loader for navigation');
+    
+    // Remove existing loader if present
+    if (loaderOverlay && loaderOverlay.parentNode) {
+        console.log('🗑️ FPL Extension: Removing existing loader');
+        loaderOverlay.parentNode.removeChild(loaderOverlay);
+    }
+    
+    // Create new loader
+    console.log('✨ FPL Extension: Creating new loader for navigation');
+    loaderOverlay = createLoaderOverlay();
+    loaderStartTime = Date.now();
+    
+    // Apply classes and remove loader with delay
+    setTimeout(() => {
+        console.log('🎯 FPL Extension: Applying classes after navigation');
+        const classesApplied = applyPersistentClasses();
+        console.log('📊 FPL Extension: Classes applied:', classesApplied);
+        removeLoaderWithDelay();
+    }, 100); // Small delay to let navigation start
+}
+
+// Function to remove loader with proper timing
+function removeLoaderWithDelay() {
+    const elapsedTime = Date.now() - loaderStartTime;
+    const remainingMinTime = Math.max(0, MINIMUM_LOADER_TIME - elapsedTime);
+    
+    setTimeout(() => {
+        // Additional delay to let layout stabilize
+        setTimeout(() => {
+            if (loaderOverlay && loaderOverlay.parentNode) {
+                removeLoaderOverlay(loaderOverlay);
+            }
+        }, STABILIZATION_DELAY);
+    }, remainingMinTime);
+}
+
+// Initial application of classes
+const initialClassesApplied = applyPersistentClasses();
+
+// Remove loader with proper timing
+if (initialClassesApplied) {
+    // Classes were applied immediately, but still wait for stabilization
+    removeLoaderWithDelay();
+} else {
+    // No classes applied yet, remove loader after a longer timeout
+    setTimeout(() => {
+        if (loaderOverlay && loaderOverlay.parentNode) {
+            removeLoaderOverlay(loaderOverlay);
+        }
+    }, 5000); // 5 second timeout for safety
+}
+
+// --- 7. Navigation Detection for SPA ---
+// Monitor URL changes to detect navigation in SPA
+function detectNavigation() {
+    const newUrl = window.location.href;
+    console.log('🔍 FPL Extension: Checking navigation - Current:', currentUrl, 'New:', newUrl);
+    
+    if (newUrl !== currentUrl) {
+        console.log('🚀 FPL Extension: Navigation detected! From:', currentUrl, 'To:', newUrl);
+        currentUrl = newUrl;
+        showLoaderForNavigation();
+    } else {
+        console.log('⏸️ FPL Extension: No navigation change detected');
+    }
+}
+
+// Override pushState and replaceState to detect programmatic navigation
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+console.log('🔧 FPL Extension: Setting up history API overrides');
+
+history.pushState = function(...args) {
+    console.log('📌 FPL Extension: pushState called with:', args);
+    originalPushState.apply(history, args);
+    setTimeout(detectNavigation, 0);
+};
+
+history.replaceState = function(...args) {
+    console.log('🔄 FPL Extension: replaceState called with:', args);
+    originalReplaceState.apply(history, args);
+    setTimeout(detectNavigation, 0);
+};
+
+// Listen for popstate events (back/forward buttons)
+window.addEventListener('popstate', () => {
+    console.log('⬅️ FPL Extension: popstate event triggered');
+    detectNavigation();
+});
+
+// Also monitor for hash changes
+window.addEventListener('hashchange', () => {
+    console.log('🔗 FPL Extension: hashchange event triggered');
+    detectNavigation();
+});
+
+// Monitor for click events on navigation links
+console.log('👁️ FPL Extension: Setting up click event monitoring');
+
+// Directly show loader when FPL navigation links are clicked
+document.addEventListener('click', (event) => {
+    const target = event.target.closest('a');
+    console.log('💆 FPL Extension: Click detected on:', target);
+    
+    if (target && target.href && target.href.includes('fantasy.premierleague.com')) {
+        console.log('🔗 FPL Extension: FPL link clicked:', target.href);
+        
+        // Check if it's an internal navigation link (same domain)
+        const targetUrl = new URL(target.href);
+        const currentUrlObj = new URL(window.location.href);
+        
+        console.log('📍 FPL Extension: Comparing URLs - Target:', targetUrl.pathname, 'Current:', currentUrlObj.pathname);
+        
+        // For FPL SPA, show loader for ANY internal link click, even to same page
+        // This works better for SPAs where the URL might not change but content does
+        if (targetUrl.origin === currentUrlObj.origin) {
+            console.log('✅ FPL Extension: Internal navigation detected, showing loader immediately');
+            // Show loader immediately and start a timer to check URL changes
+            showLoaderForNavigation();
+            
+            // Also set up a safety timeout for the original detection method
+            setTimeout(detectNavigation, 50);
+        } else {
+            console.log('❌ FPL Extension: External navigation detected');
+        }
+    } else {
+        console.log('ℹ️ FPL Extension: Not an FPL link or no href');
+    }
+});

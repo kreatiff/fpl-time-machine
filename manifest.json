@@ -13,6 +13,11 @@
         "js": ["content.js"],
         "css": ["styles.css"]
       }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["loader.css"],
+        "matches": ["https://fantasy.premierleague.com/*"]
+      }
     ]
   }
-  
