@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "FPL Time Machine",
-    "version": "1.0",
+    "version": "0.1",
     "description": "Roll back some of the recent 'improvements' to the FPL website.",
     "icons": {
         "16": "images/fpl_gup_icon16.png",
