@@ -10,44 +10,50 @@
             width: 300px;
             padding: 15px;
             color: #333;
+            background-color: #f8f8f8;
         }
-        
+
         h1 {
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #37003c; /* FPL Purple */
+            color: #37003c;
             border-bottom: 2px solid #37003c;
             padding-bottom: 8px;
         }
-        
+
         .toggle-container {
             margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            gap: 8px;
         }
-        
-        .toggle-container label {
+
+        .toggle-label {
             font-size: 14px;
             font-weight: 500;
-            margin-right: 10px;
-            flex-grow: 1;
+            flex: 1;
         }
-        
+
         .toggle-switch {
             position: relative;
             display: inline-block;
-            width: 50px;
-            height: 24px;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
         }
-        
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-        
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -55,31 +61,39 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
+            background-color: #ddd;
+            transition: .3s;
+            border-radius: 20px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
         }
-        
+
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
             background-color: white;
-            transition: .4s;
+            transition: .3s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        
+
         input:checked + .slider {
-            background-color: #00ff85; /* FPL Green */
+            background-color: #00ff85;
+            background-image: linear-gradient(145deg, #00ff85, #00c870);
         }
-        
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #00ff85;
+        }
+
         input:checked + .slider:before {
-            transform: translateX(26px);
+            transform: translateX(16px);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
-        
+
         .description {
             font-size: 12px;
             color: #777;
@@ -87,11 +101,11 @@
             margin-bottom: 8px;
             padding-right: 40px;
         }
-        
+
         .section {
             margin-bottom: 20px;
         }
-        
+
         .footer {
             font-size: 11px;
             color: #999;
@@ -104,10 +118,10 @@
 </head>
 <body>
     <h1>FPL Layout Tweaker</h1>
-    
+
     <div class="section">
         <div class="toggle-container">
-            <label for="toggle-nav">Hide Navigation Bar</label>
+            <span class="toggle-label">Hide Navigation Bar</span>
             <label class="toggle-switch">
                 <input type="checkbox" id="toggle-nav">
                 <span class="slider"></span>
@@ -117,33 +131,33 @@
             Hides the top navigation bar to give more screen space for content
         </div>
     </div>
-    
+
     <div class="section">
         <div class="toggle-container">
-            <label for="toggle-ads">Hide Ad Container</label>
+            <span class="toggle-label">Hide FPL Ad</span>
             <label class="toggle-switch">
                 <input type="checkbox" id="toggle-ads" checked>
                 <span class="slider"></span>
             </label>
         </div>
         <div class="description">
-            Hides the advertising container section
+            Hides the stupid ad section which advertises FPL while you are already in FPL 🤦
         </div>
     </div>
-    
+
     <div class="section">
         <div class="toggle-container">
-            <label for="toggle-flex-layout">Flex Layout</label>
+            <span class="toggle-label">Retro Style</span>
             <label class="toggle-switch">
-                <input type="checkbox" id="toggle-flex-layout" checked>
+                <input type="checkbox" id="toggle-retro">
                 <span class="slider"></span>
             </label>
         </div>
         <div class="description">
-            Optimizes layout with flexible containers
+            Replaces the modern pitch graphic with a retro style pitch
         </div>
     </div>
-    
+
     <div class="footer">
         FPL Layout Tweaker v1.0
     </div>

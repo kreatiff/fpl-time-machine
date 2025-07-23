@@ -1,8 +1,14 @@
 {
     "manifest_version": 3,
-    "name": "FPL Layout Tweaker",
+    "name": "FPL Time Machine",
     "version": "1.0",
-    "description": "Adds persistent classes to FPL layout sections for easier styling.",
+    "description": "Roll back some of the recent 'improvements' to the FPL website.",
+    "icons": {
+        "16": "images/fpl_gup_icon16.png",
+        "32": "images/fpl_gup_icon32.png",
+        "48": "images/fpl_gup_icon48.png",
+        "128": "images/fpl_gup_icon128.png"
+      },
     "permissions": [
       "activeTab",
       "scripting",
@@ -10,19 +16,18 @@
     ],
     "content_scripts": [
       {
-        "matches": ["https://fantasy.premierleague.com/*"],
+        "matches": ["https://fantasy.premierleague.com/transfers*", "https://fantasy.premierleague.com/my-team*"],
         "js": ["content.js"],
         "css": ["styles.css"]
       }
     ],
     "web_accessible_resources": [
       {
-        "resources": ["loader.css"],
+        "resources": ["loader.css", "images/retro_pitch.jpg"],
         "matches": ["https://fantasy.premierleague.com/*"]
       }
     ],
     "action": {
-      "default_popup": "popup.html",
-      "default_icon": "images/icon.svg"
+      "default_popup": "popup.html"
     }
   }

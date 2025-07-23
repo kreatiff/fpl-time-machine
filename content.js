@@ -10,15 +10,17 @@
 let settings = {
     hideNavigation: false,
     hideAds: true,
-    useFlexLayout: true
+    useFlexLayout: true,
+    useRetroStyle: false
 };
 
 // Load settings from storage
 function loadSettings() {
-    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout'], function(result) {
+    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout', 'useRetroStyle'], function(result) {
         settings.hideNavigation = result.hideNavigation ?? false;
         settings.hideAds = result.hideAds ?? true;
         settings.useFlexLayout = result.useFlexLayout ?? true;
+        settings.useRetroStyle = result.useRetroStyle ?? false;
         applySettings();
     });
 }
@@ -28,6 +30,13 @@ function applySettings() {
     toggleNavigation(settings.hideNavigation);
     toggleAdContainer(settings.hideAds);
     toggleFlexLayout(settings.useFlexLayout);
+    toggleRetroStyle(settings.useRetroStyle);
+    
+    // Make sure our settings are applied even if the elements were initially missing
+    // This is especially important for the ad container after page refresh
+    if (!document.querySelector('.fpl-ad-container') && settings.hideAds) {
+        console.log('🔍 FPL Extension: Ad container not found yet, will retry after classes are applied');
+    }
 }
 
 // Toggle navigation visibility
@@ -61,6 +70,181 @@ function toggleFlexLayout(enable) {
         }
         console.log('🎯 FPL Extension: Flex layout:', enable ? 'enabled' : 'disabled');
     }
+}
+
+// Toggle retro style pitch background
+function toggleRetroStyle(enable) {
+    // Get the retro pitch image URL from the extension
+    const retroPitchUrl = chrome.runtime.getURL('images/retro_pitch.jpg');
+    
+    // CSS to be injected for retro style
+    let retroStyleCSS = '';
+    
+    // Remove any existing retro style first to ensure a clean state
+    const existingStyle = document.getElementById('fpl-retro-style');
+    if (existingStyle) {
+        existingStyle.parentNode.removeChild(existingStyle);
+    }
+    
+    // Find all elements with background-image containing 'pitch-graphic'
+    // These could be in inline styles or in stylesheets
+    if (enable) {
+        console.log('🏟️ FPL Extension: Applying retro style pitch');
+        
+        // Create a style element for our overriding CSS
+        const styleElement = document.createElement('style');
+        styleElement.id = 'fpl-retro-style';
+        
+        // Create CSS that overrides any element with background-image containing pitch-graphic
+        // Also handle elements with style property directly and any future elements
+        retroStyleCSS = `
+            /* Target elements with inline styles containing pitch-graphic */
+            [style*="pitch-graphic"] {
+                background-image: url("${retroPitchUrl}") !important;
+                background-size: cover !important;
+                background-position: top !important;
+            }
+            
+            /* Target pitch elements by attribute if present */
+            div[data-sponsor="default"] {
+                background-image: url("${retroPitchUrl}") !important;
+                background-size: cover !important;
+                background-position: top !important;
+            }
+            
+            /* Target common class names that might contain pitch background */
+            .pitch, 
+            .pitch-container, 
+            .field, 
+            .ground,
+            [class*="pitch"],
+            [class*="field"] {
+                background-image: url("${retroPitchUrl}") !important;
+                background-size: cover !important;
+                background-position: top !important;
+            }
+            
+            /* Override any background image URLs containing pitch-graphic */
+            *[style*="background"] {
+                background-image: url("${retroPitchUrl}") !important;
+                background-size: cover !important;
+                background-position: top !important;
+            }
+        `;
+        
+        styleElement.textContent = retroStyleCSS;
+        document.head.appendChild(styleElement);
+        
+        // Also look for inline styles to replace immediately
+        const elementsToCheck = [
+            // Elements with style containing pitch-graphic
+            ...document.querySelectorAll('[style*="pitch-graphic"]'),
+            // Elements with data-sponsor="default"
+            ...document.querySelectorAll('div[data-sponsor="default"]'),
+            // Additional selectors for pitch elements
+            ...document.querySelectorAll('.pitch, .pitch-container, .field, .ground, [class*="pitch"], [class*="field"]'),
+            // Elements with any background style
+            ...document.querySelectorAll('[style*="background"]')
+        ];
+        
+        // Use a Set to remove duplicates
+        const uniqueElements = [...new Set(elementsToCheck)];
+        
+        uniqueElements.forEach(element => {
+            // Check if this element has a background image we care about
+            const computedStyle = window.getComputedStyle(element);
+            const backgroundImage = computedStyle.backgroundImage;
+            
+            if (backgroundImage && backgroundImage.includes('pitch-graphic')) {
+                console.log('🔄 FPL Extension: Found element with pitch background:', element);
+                element.style.backgroundImage = `url("${retroPitchUrl}")`;
+                element.style.backgroundSize = 'cover';
+                element.style.backgroundPosition = 'top';
+                element.setAttribute('data-original-bg', backgroundImage); // Save original for restoration
+            }
+        });
+        
+        // Set up a mutation observer to catch any dynamically added elements
+        setupPitchBackgroundObserver(retroPitchUrl);
+        
+        console.log('🏟️ FPL Extension: Retro style pitch enabled');
+    } else {
+        console.log('🏟️ FPL Extension: Retro style pitch disabled');
+        
+        // Reset elements that had inline style modifications
+        const modifiedElements = document.querySelectorAll('[data-original-bg]');
+        modifiedElements.forEach(element => {
+            // Restore original background if we saved it
+            const originalBg = element.getAttribute('data-original-bg');
+            if (originalBg) {
+                element.style.backgroundImage = originalBg;
+                element.removeAttribute('data-original-bg');
+            } else {
+                // Otherwise just clear our modifications
+                element.style.backgroundImage = '';
+            }
+            element.style.backgroundSize = '';
+            element.style.backgroundPosition = '';
+        });
+        
+        // Also remove observer if it exists
+        if (window.pitchBackgroundObserver) {
+            window.pitchBackgroundObserver.disconnect();
+            window.pitchBackgroundObserver = null;
+        }
+    }
+}
+
+// Observer function to watch for dynamically added pitch elements
+function setupPitchBackgroundObserver(retroPitchUrl) {
+    // Disconnect existing observer if any
+    if (window.pitchBackgroundObserver) {
+        window.pitchBackgroundObserver.disconnect();
+    }
+    
+    // Create a new mutation observer
+    window.pitchBackgroundObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    // Check if the added node is an element
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if it has a background image containing pitch-graphic
+                        const computedStyle = window.getComputedStyle(node);
+                        const backgroundImage = computedStyle.backgroundImage;
+                        
+                        if (backgroundImage && backgroundImage.includes('pitch-graphic')) {
+                            console.log('🔵 FPL Extension: New element with pitch background detected:', node);
+                            node.style.backgroundImage = `url("${retroPitchUrl}")`;
+                            node.style.backgroundSize = 'cover';
+                            node.style.backgroundPosition = 'top';
+                            node.setAttribute('data-original-bg', backgroundImage);
+                        }
+                        
+                        // Also check any children with pitch-graphic backgrounds
+                        const childrenWithBg = node.querySelectorAll('[style*="pitch-graphic"], div[data-sponsor="default"]');
+                        childrenWithBg.forEach(child => {
+                            const childStyle = window.getComputedStyle(child);
+                            const childBg = childStyle.backgroundImage;
+                            
+                            if (childBg && childBg.includes('pitch-graphic')) {
+                                child.style.backgroundImage = `url("${retroPitchUrl}")`;
+                                child.style.backgroundSize = 'cover';
+                                child.style.backgroundPosition = 'top';
+                                child.setAttribute('data-original-bg', childBg);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
+    
+    // Start observing
+    window.pitchBackgroundObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 }
 
 // Array of funny loading messages
@@ -214,8 +398,13 @@ const observer = new MutationObserver((mutationsList, observer) => {
         // We only need to check for the wrapper, as the function will find all children from there.
         if (!document.querySelector('.fpl-content-wrapper')) {
             const classesApplied = applyPersistentClasses();
-            if (classesApplied && loaderOverlay && loaderOverlay.parentNode) {
-                removeLoaderWithDelay();
+            if (classesApplied) {
+                // Apply settings after classes are applied (especially for ad container)
+                applySettings();
+                
+                if (loaderOverlay && loaderOverlay.parentNode) {
+                    removeLoaderWithDelay();
+                }
             }
         }
     }, 500);
@@ -250,6 +439,12 @@ function showLoaderForNavigation() {
         console.log('🎯 FPL Extension: Applying classes after navigation');
         const classesApplied = applyPersistentClasses();
         console.log('📊 FPL Extension: Classes applied:', classesApplied);
+        
+        // Reapply settings after classes are applied
+        if (classesApplied) {
+            applySettings();
+        }
+        
         removeLoaderWithDelay();
     }, 100); // Small delay to let navigation start
 }
@@ -272,13 +467,21 @@ function removeLoaderWithDelay() {
 // Initial application of classes
 const initialClassesApplied = applyPersistentClasses();
 
-// Remove loader with proper timing
+// Apply settings after classes are applied (important for the ad container)
 if (initialClassesApplied) {
-    // Classes were applied immediately, but still wait for stabilization
+    // Classes were applied immediately, reapply settings now that elements exist
+    applySettings();
+    // Still wait for stabilization
     removeLoaderWithDelay();
 } else {
     // No classes applied yet, remove loader after a longer timeout
     setTimeout(() => {
+        // Try applying classes one more time
+        const retryClassesApplied = applyPersistentClasses();
+        if (retryClassesApplied) {
+            applySettings(); // Apply settings if classes were applied on retry
+        }
+        
         if (loaderOverlay && loaderOverlay.parentNode) {
             removeLoaderOverlay(loaderOverlay);
         }
