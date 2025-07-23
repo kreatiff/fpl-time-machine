@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "FPL Layout Tweaker",
+    "version": "1.0",
+    "description": "Adds persistent classes to FPL layout sections for easier styling.",
+    "permissions": [
+      "activeTab",
+      "scripting"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["https://fantasy.premierleague.com/*"],
+        "js": ["content.js"],
+        "css": ["styles.css"]
+      }
+    ]
+  }
+  
