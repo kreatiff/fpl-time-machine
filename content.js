@@ -267,6 +267,7 @@ const funnyLoadingMessages = [
  */
 function createLoaderOverlay() {
     // Select a random message
+    if(window.location.pathname.includes('my-team') || window.location.pathname.includes('transfers')) {
     const randomMessage = funnyLoadingMessages[Math.floor(Math.random() * funnyLoadingMessages.length)];
     console.log('🎭 FPL Extension: Selected random message:', randomMessage);
     
@@ -288,6 +289,7 @@ function createLoaderOverlay() {
     // Add overlay to page
     document.documentElement.appendChild(overlay);
     return overlay;
+    }
 }
 
 /**
@@ -372,7 +374,7 @@ function applyPersistentClasses() {
     // --- 4. Identify Content Wrapper and Ad Container ---
     // Strategy: The ad container and content wrapper are direct siblings of the main navigation header.
     const mainNav = document.querySelector('.fpl-main-nav');
-    if (mainNav) {
+    if (mainNav&& (window.location.pathname.includes('my-team') || window.location.pathname.includes('transfers')) ) {
         const adContainer = mainNav.nextElementSibling;
         if (adContainer && !adContainer.classList.contains('fpl-ad-container')) {
             adContainer.classList.add('fpl-ad-container');

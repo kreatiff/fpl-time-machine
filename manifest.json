@@ -16,7 +16,7 @@
     ],
     "content_scripts": [
       {
-        "matches": ["https://fantasy.premierleague.com/transfers*", "https://fantasy.premierleague.com/my-team*"],
+        "matches": ["https://fantasy.premierleague.com/*"],
         "js": ["content.js"],
         "css": ["styles.css"]
       }
