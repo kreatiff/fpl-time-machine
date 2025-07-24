@@ -17,7 +17,7 @@
     "content_scripts": [
       {
         "matches": ["https://fantasy.premierleague.com/*"],
-        "js": ["content.js"],
+        "js": ["browser-polyfill.js", "content.js"],
         "css": ["styles.css"]
       }
     ],
@@ -29,5 +29,11 @@
     ],
     "action": {
       "default_popup": "popup.html"
+    },
+    "browser_specific_settings": {
+      "gecko": {
+        "id": "fpl-time-machine@coinboi.protonmail.com",
+        "strict_min_version": "109.0"
+      }
     }
   }

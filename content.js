@@ -17,14 +17,18 @@ let settings = {
 
 // Load settings from storage
 function loadSettings() {
-    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout', 'useRetroStyle', 'useFullWidth'], function(result) {
-        settings.hideNavigation = result.hideNavigation ?? false;
-        settings.hideAds = result.hideAds ?? true;
-        settings.useFlexLayout = result.useFlexLayout ?? true;
-        settings.useRetroStyle = result.useRetroStyle ?? false;
-        settings.useFullWidth = result.useFullWidth ?? false;
-        applySettings();
-    });
+    browser.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout', 'useRetroStyle', 'useFullWidth'])
+        .then(function(result) {
+            settings.hideNavigation = result.hideNavigation ?? false;
+            settings.hideAds = result.hideAds ?? true;
+            settings.useFlexLayout = result.useFlexLayout ?? true;
+            settings.useRetroStyle = result.useRetroStyle ?? false;
+            settings.useFullWidth = result.useFullWidth ?? false;
+            applySettings();
+        })
+        .catch(function(error) {
+            console.error('Error loading settings:', error);
+        });
 }
 
 // Apply current settings to the page
@@ -97,7 +101,7 @@ function toggleFullWidth(enable) {
 // Toggle retro style pitch background
 function toggleRetroStyle(enable) {
     // Get the retro pitch image URL from the extension
-    const retroPitchUrl = chrome.runtime.getURL('images/retro_pitch.jpg');
+    const retroPitchUrl = browser.runtime.getURL('images/retro_pitch.jpg');
     
     // CSS to be injected for retro style
     let retroStyleCSS = '';
@@ -305,7 +309,7 @@ function createLoaderOverlay() {
     // Inject loader CSS
     const loaderCSS = document.createElement('link');
     loaderCSS.rel = 'stylesheet';
-    loaderCSS.href = chrome.runtime.getURL('loader.css');
+    loaderCSS.href = browser.runtime.getURL('loader.css');
     document.head.appendChild(loaderCSS);
     
     // Add overlay to page
@@ -607,41 +611,27 @@ document.addEventListener('click', (event) => {
             console.log('❌ FPL Extension: External navigation detected');
         }
     } else {
-        console.log('ℹ️ FPL Extension: Not an FPL link or no href');
+        console.log(' FPL Extension: Not an FPL link or no href');
     }
 });
 
 // Listen for messages from the popup
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.action === 'updateSettings') {
-        console.log('🔧 FPL Extension: Updating settings', request.settings);
+        console.log('🔧 FPL Extension: Received settings update from popup');
+        settings = request.settings;
         
-        // Update all available settings
-        if (typeof request.settings.hideNavigation !== 'undefined') {
-            settings.hideNavigation = request.settings.hideNavigation;
-        }
-        
-        if (typeof request.settings.hideAds !== 'undefined') {
-            settings.hideAds = request.settings.hideAds;
-        }
-        
-        if (typeof request.settings.useFlexLayout !== 'undefined') {
-            settings.useFlexLayout = request.settings.useFlexLayout;
-        }
-        
-        if (typeof request.settings.useRetroStyle !== 'undefined') {
-            settings.useRetroStyle = request.settings.useRetroStyle;
-        }
-        
-        if (typeof request.settings.useFullWidth !== 'undefined') {
-            settings.useFullWidth = request.settings.useFullWidth;
-        }
-        
+        // Apply the updated settings
         applySettings();
-        sendResponse({status: 'success'});
+        
+        // Firefox needs a Promise return for async response
+        return Promise.resolve({status: 'success'});
     }
+    
+    // Always return true for Chrome compatibility
     return true;
 });
+
 
 // Load settings on initialization
 loadSettings();
