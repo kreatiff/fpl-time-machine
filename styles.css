@@ -60,14 +60,7 @@
 */
 
 /* --- Custom Layout Rules --- */
-.fpl-content-wrapper {
-    /* Max-width and Centering */
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
-    
-    /* Flexbox layout now dynamically controlled via JavaScript */
-}
+/* Width, centering and flexbox layout now dynamically controlled via JavaScript */
 
 .fpl-main-area {
     width: 70%;
@@ -136,14 +129,7 @@
 */
 
 /* --- Custom Layout Rules --- */
-.fpl-content-wrapper {
-    /* Max-width and Centering */
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
-    
-    /* Flexbox layout now dynamically controlled via JavaScript */
-}
+/* Width, centering and flexbox layout now dynamically controlled via JavaScript */
 
 .fpl-main-area {
     width:70%
@@ -212,7 +198,7 @@
 /* --- Custom Layout Rules --- */
 .fpl-content-wrapper {
     /* Max-width and Centering */
-    max-width: 1600px;
+    /*max-width: 1600px;
     margin-left: auto;
     margin-right: auto;
 
@@ -224,11 +210,12 @@
 }
 
 .fpl-main-area {
-width:70%
+width:70%;
+flex-grow: 1;
 }
 
 .fpl-side-bar {
-width:30%
+width:30%;
 }
 
 /* Ad container visibility now dynamically controlled via JavaScript */

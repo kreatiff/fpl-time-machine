@@ -11,16 +11,18 @@ let settings = {
     hideNavigation: false,
     hideAds: true,
     useFlexLayout: true,
-    useRetroStyle: false
+    useRetroStyle: false,
+    useFullWidth: false
 };
 
 // Load settings from storage
 function loadSettings() {
-    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout', 'useRetroStyle'], function(result) {
+    chrome.storage.sync.get(['hideNavigation', 'hideAds', 'useFlexLayout', 'useRetroStyle', 'useFullWidth'], function(result) {
         settings.hideNavigation = result.hideNavigation ?? false;
         settings.hideAds = result.hideAds ?? true;
         settings.useFlexLayout = result.useFlexLayout ?? true;
         settings.useRetroStyle = result.useRetroStyle ?? false;
+        settings.useFullWidth = result.useFullWidth ?? false;
         applySettings();
     });
 }
@@ -30,6 +32,7 @@ function applySettings() {
     toggleNavigation(settings.hideNavigation);
     toggleAdContainer(settings.hideAds);
     toggleFlexLayout(settings.useFlexLayout);
+    toggleFullWidth(settings.useFullWidth);
     toggleRetroStyle(settings.useRetroStyle);
     
     // Make sure our settings are applied even if the elements were initially missing
@@ -69,6 +72,25 @@ function toggleFlexLayout(enable) {
             contentWrapper.style.flexDirection = '';
         }
         console.log('🎯 FPL Extension: Flex layout:', enable ? 'enabled' : 'disabled');
+    }
+}
+
+// Toggle full width layout
+function toggleFullWidth(enable) {
+    const contentWrapper = document.querySelector('.fpl-content-wrapper');
+    if (contentWrapper) {
+        if (enable) {
+            // Full width mode - remove max-width constraint
+            contentWrapper.style.maxWidth = 'none';
+            contentWrapper.style.marginLeft = '0';
+            contentWrapper.style.marginRight = '0';
+        } else {
+            // Constrained width mode - set max-width to 1600px and center
+            contentWrapper.style.maxWidth = '1600px';
+            contentWrapper.style.marginLeft = 'auto';
+            contentWrapper.style.marginRight = 'auto';
+        }
+        console.log('🎯 FPL Extension: Full width layout:', enable ? 'enabled' : 'disabled');
     }
 }
 
@@ -358,17 +380,34 @@ function applyPersistentClasses() {
         }
     }
 
-    // --- 3. Identify Side Bar (Player Selection & Filters) ---
+    // --- 3. Identify Side Bar (Player Selection & Filters OR Points & Rankings) ---
     // Strategy: Find a unique, stable element inside the sidebar first.
-    const searchInput = document.querySelector('input[placeholder="Search by name"]');
     let sideBar = null;
+    
+    // Method 1: Look for search input (transfers page)
+    const searchInput = document.querySelector('input[placeholder="Search by name"]');
     if (searchInput) {
         // The sidebar is the <section> that contains the search input.
         sideBar = searchInput.closest('section');
-        if (sideBar && !sideBar.classList.contains('fpl-side-bar')) {
-            sideBar.classList.add('fpl-side-bar');
-            classesApplied = true;
+    }
+    
+    // Method 2: Look for "Points & Rankings" heading (my-team page)
+    if (!sideBar) {
+        var xpath = "//h3[text()='Points & Rankings']";
+        console.log('🎯 FPL Extension: Looking for Points & Rankings heading using XPath: ' + xpath);
+        const pointsRankingsHeading = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        console.log('🎯 FPL Extension: Found Points & Rankings heading using XPath: ' + pointsRankingsHeading);
+        if (pointsRankingsHeading && pointsRankingsHeading.textContent.includes('Points & Rankings')) {
+            // The sidebar is the <section> that contains the Points & Rankings heading
+            sideBar = pointsRankingsHeading.closest('section');
         }
+    }
+    
+    // Apply the class if we found a sidebar
+    if (sideBar && !sideBar.classList.contains('fpl-side-bar')) {
+        sideBar.classList.add('fpl-side-bar');
+        classesApplied = true;
+        console.log('🎯 FPL Extension: Sidebar detected and classified');
     }
     
     // --- 4. Identify Content Wrapper and Ad Container ---
@@ -588,6 +627,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         
         if (typeof request.settings.useFlexLayout !== 'undefined') {
             settings.useFlexLayout = request.settings.useFlexLayout;
+        }
+        
+        if (typeof request.settings.useRetroStyle !== 'undefined') {
+            settings.useRetroStyle = request.settings.useRetroStyle;
+        }
+        
+        if (typeof request.settings.useFullWidth !== 'undefined') {
+            settings.useFullWidth = request.settings.useFullWidth;
         }
         
         applySettings();
