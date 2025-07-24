@@ -17,7 +17,7 @@ FPL Time Machine gives you the ability to go back to a better time with these fe
 
 ## Limitations
 
-🛑 Only modifies on the `/my-team` and `/transfers` pages  
+🛑 Only modifies the `/my-team` and `/transfers` pages  
 🛑 This is an early version so there may be bugs  
 🛑 Not tested with dark mode
 
