@@ -23,7 +23,7 @@ FPL Time Machine gives you the ability to go back to a better time with these fe
 
 ## Technical Details
 
-The extension adds these CSS classes to make styling easier:
+The extension reliably identifies page elements based on the page structure without relying on CSS classes, and adds it's own CSS classes to make styling easier:
 - `fpl-main-nav` - Main navigation container
 - `fpl-ad-container` - Advertisement sections
 - `fpl-content-wrapper` - Main content wrapper
@@ -37,7 +37,3 @@ The extension adds these CSS classes to make styling easier:
 ## Feedback & Bug Reports
 
 If you have a bug to report or a feature suggestion please submit them here: https://github.com/kreatiff/fpl-time-machine/issues
-
-## License
-
-MIT
