@@ -8,18 +8,67 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             width: 300px;
-            padding: 15px;
+            padding: 0px;
             color: #333;
             background-color: #f8f8f8;
         }
 
-        h1 {
+        .header {
+            background: linear-gradient(135deg, #0BEEFE 0%, #943CFB 100%);
+            margin: -15px -15px 20px -15px;
+            padding: 24px 15px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 10px rgba(55, 0, 60, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #37003c;
-            border-bottom: 2px solid #37003c;
-            padding-bottom: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            transform: translateY(-1px);
         }
 
         .toggle-container {
@@ -27,7 +76,7 @@
             display: flex;
             align-items: center;
             background-color: white;
-            padding: 8px 12px;
+            padding: 12px 12px;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             box-sizing: border-box;
@@ -104,20 +153,53 @@
 
         .section {
             margin-bottom: 20px;
+            padding: 0px 8px;
         }
 
+        .buy-me-a-coffee {
+            background-color: #FFDD30;
+            color: #000 ;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            font-weight: 500;
+            font-size: 16px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .buy-me-a-coffee:hover {
+            background-color: #fdd613;
+            color: #000 ;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-sizing: border-box; 
+        }
+        .buy-me-a-coffee:before {
+            content: "☕";
+            margin-right: 8px;
+        }
         .footer {
             font-size: 11px;
             color: #999;
             text-align: center;
-            margin-top: 15px;
-            border-top: 1px solid #eee;
+            margin-top: 24px;
+            margin-bottom: 16px;
             padding-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>FPL Layout Tweaker</h1>
+    <div class="header">
+        <div class="header-left">
+            <img src="images/fpl_gup_icon128.png" alt="FPL Time Machine" class="header-icon">
+            <h1 class="header-title">FPL Time Machine</h1>
+        </div>
+        <a href="https://x.com/fpl_aus" target="_blank" class="header-link">fpl_aus</a>
+    </div>
 
     <div class="section">
         <div class="toggle-container">
@@ -141,7 +223,7 @@
             </label>
         </div>
         <div class="description">
-            Hides the stupid ad section which advertises FPL while you are already in FPL 🤦
+            Hides the stupid ad section which advertises FPL while you are already in FPL.
         </div>
     </div>
 
@@ -174,7 +256,8 @@
     </div>
 
     <div class="footer">
-        FPL Layout Tweaker v0.1
+        <a href="https://buymeacoffee.com/fpl_aus" target="_blank" class="buy-me-a-coffee">Buy me a coffee</a>
+        <p><a href="https://github.com/kreatiff/fpl-time-machine/issues" target="_blank">Report a Bug</a></p>
     </div>
 
     <script src="popup.js"></script>
